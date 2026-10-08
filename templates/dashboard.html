@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+  <h3 class="m-0">Dashboard – {{ month_label }}</h3>
+  <form method="get" class="d-flex gap-2">
+    <input type="month" name="month" value="{{ month_value }}" class="form-control">
+    <button class="btn btn-outline-primary">Go</button>
+  </form>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4"><div class="card shadow-sm"><div class="card-body">
+    <div class="text-muted">Spent this month</div><div class="fs-3 fw-bold">Rs. {{ month_total|floatformat:2 }}</div></div></div></div>
+  <div class="col-md-4"><div class="card shadow-sm"><div class="card-body">
+    <div class="text-muted">Transactions this month</div><div class="fs-3 fw-bold">{{ month_count }}</div></div></div></div>
+  <div class="col-md-4"><div class="card shadow-sm"><div class="card-body">
+    <div class="text-muted">All-time total</div><div class="fs-3 fw-bold">Rs. {{ all_time_total|floatformat:2 }}</div></div></div></div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-6"><div class="card shadow-sm h-100"><div class="card-body">
+    <h5>Category-wise expense</h5>
+    {% for r in by_category %}
+      <div class="mb-3">
+        <div class="d-flex justify-content-between"><span>{{ r.name }}</span><span>Rs. {{ r.total|floatformat:2 }} ({{ r.percent }}%)</span></div>
+        <progress class="bar" value="{{ r.percent }}" max="100"></progress>
+      </div>
+    {% empty %}<p class="text-muted">No expenses this month.</p>{% endfor %}
+  </div></div></div>
+
+  <div class="col-lg-6"><div class="card shadow-sm h-100"><div class="card-body">
+    <h5>Last 6 months</h5>
+    {% for t in trend %}
+      <div class="mb-3">
+        <div class="d-flex justify-content-between"><span>{{ t.label }}</span><span>Rs. {{ t.total|floatformat:2 }}</span></div>
+        <progress class="bar green" value="{{ t.percent }}" max="100"></progress>
+      </div>
+    {% endfor %}
+  </div></div></div>
+</div>
+
+<div class="card shadow-sm mt-4"><div class="card-body">
+  <div class="d-flex justify-content-between"><h5>Recent expenses</h5><a class="btn btn-sm btn-primary" href="{% url 'expense_create' %}">+ Add expense</a></div>
+  <table class="table mb-0">
+    {% for e in recent %}
+    <tr><td>{{ e.date }}</td><td>{{ e.title }}</td><td>{{ e.category|default:"Uncategorized" }}</td><td class="text-end">Rs. {{ e.amount }}</td></tr>
+    {% empty %}<tr><td class="text-muted">Nothing yet. Add your first expense!</td></tr>{% endfor %}
+  </table>
+</div></div>
+{% endblock %}

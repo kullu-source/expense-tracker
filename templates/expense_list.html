@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Expenses{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="m-0">Expenses</h3>
+  <a class="btn btn-primary" href="{% url 'expense_create' %}">+ Add expense</a>
+</div>
+
+<form method="get" class="card card-body shadow-sm mb-3">
+  <div class="row g-2">
+    <div class="col-md-3"><input name="q" value="{{ filters.q }}" class="form-control" placeholder="Search title or note"></div>
+    <div class="col-md-3">
+      <select name="category" class="form-select">
+        <option value="">All categories</option>
+        {% for c in categories %}<option value="{{ c.pk }}" {% if filters.category == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2"><input type="date" name="date_from" value="{{ filters.date_from }}" class="form-control" title="From"></div>
+    <div class="col-md-2"><input type="date" name="date_to" value="{{ filters.date_to }}" class="form-control" title="To"></div>
+    <div class="col-md-2 d-flex gap-2"><button class="btn btn-outline-primary w-100">Filter</button><a class="btn btn-outline-secondary" href="{% url 'expense_list' %}">Reset</a></div>
+  </div>
+</form>
+
+<div class="card shadow-sm"><div class="table-responsive">
+<table class="table table-hover align-middle mb-0">
+  <thead><tr><th>Date</th><th>Title</th><th>Category</th><th class="text-end">Amount</th><th></th></tr></thead>
+  <tbody>
+  {% for e in page %}
+    <tr>
+      <td>{{ e.date }}</td>
+      <td>{{ e.title }}{% if e.note %}<div class="text-muted small">{{ e.note|truncatechars:60 }}</div>{% endif %}</td>
+      <td>{{ e.category|default:"Uncategorized" }}</td>
+      <td class="text-end">Rs. {{ e.amount }}</td>
+      <td class="text-end text-nowrap">
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'expense_update' e.pk %}">Edit</a>
+        <a class="btn btn-sm btn-outline-danger" href="{% url 'expense_delete' e.pk %}">Delete</a>
+      </td>
+    </tr>
+  {% empty %}<tr><td colspan="5" class="text-center text-muted py-4">No expenses found.</td></tr>{% endfor %}
+  </tbody>
+  <tfoot><tr class="table-light"><th colspan="3">Total (filtered)</th><th class="text-end">Rs. {{ total|floatformat:2 }}</th><th></th></tr></tfoot>
+</table></div></div>
+
+{% if page.has_other_pages %}
+<nav class="mt-3"><ul class="pagination justify-content-center">
+  {% if page.has_previous %}<li class="page-item"><a class="page-link" href="?{{ querystring }}&page={{ page.previous_page_number }}">Previous</a></li>{% endif %}
+  <li class="page-item disabled"><span class="page-link">Page {{ page.number }} of {{ page.paginator.num_pages }}</span></li>
+  {% if page.has_next %}<li class="page-item"><a class="page-link" href="?{{ querystring }}&page={{ page.next_page_number }}">Next</a></li>{% endif %}
+</ul></nav>
+{% endif %}
+{% endblock %}

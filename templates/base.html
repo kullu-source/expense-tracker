@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Expense Tracker{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #f4f6f9; }
+    .site-nav { background: #1f2a44; }
+    .site-nav .navbar-brand { font-weight: 600; letter-spacing: .3px; }
+    .site-nav .nav-link { color: #c9d1e3; padding: .5rem 1rem; border-radius: 6px; }
+    .site-nav .nav-link:hover { color: #fff; background: rgba(255,255,255,.08); }
+    .site-nav .nav-link.active { color: #fff; background: rgba(255,255,255,.16); }
+    .avatar { width: 30px; height: 30px; border-radius: 50%; background: #3b82f6; color: #fff;
+              display: inline-flex; align-items: center; justify-content: center; font-weight: 600; font-size: .9rem; }
+    .card { border: 0; }
+    progress.bar { width: 100%; height: 10px; border: 0; border-radius: 5px; background: #e9ecef;
+                   -webkit-appearance: none; appearance: none; }
+    progress.bar::-webkit-progress-bar { background: #e9ecef; border-radius: 5px; }
+    progress.bar::-webkit-progress-value { background: #3b82f6; border-radius: 5px; }
+    progress.bar::-moz-progress-bar { background: #3b82f6; border-radius: 5px; }
+    progress.bar.green::-webkit-progress-value { background: #198754; }
+    progress.bar.green::-moz-progress-bar { background: #198754; }
+  </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark site-nav mb-4 py-2">
+  <div class="container">
+    <a class="navbar-brand" href="{% url 'dashboard' %}">Expense Tracker</a>
+    {% if user.is_authenticated %}
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="mainNav">
+      {% url 'dashboard' as dashboard_url %}
+      <ul class="navbar-nav me-auto ms-lg-4 gap-lg-1">
+        <li class="nav-item"><a class="nav-link {% if request.path == dashboard_url %}active{% endif %}" href="{% url 'dashboard' %}">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link {% if '/expenses/' in request.path %}active{% endif %}" href="{% url 'expense_list' %}">Expenses</a></li>
+        <li class="nav-item"><a class="nav-link {% if '/categories/' in request.path %}active{% endif %}" href="{% url 'category_list' %}">Categories</a></li>
+      </ul>
+      <div class="d-flex align-items-center gap-3 mt-3 mt-lg-0">
+        <div class="dropdown">
+          <a class="d-flex align-items-center gap-2 text-white text-decoration-none dropdown-toggle" href="#" data-bs-toggle="dropdown">
+            <span class="avatar">{{ user.username|first|upper }}</span>
+            <span>{{ user.username }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+              <form method="post" action="{% url 'logout' %}" class="m-0">{% csrf_token %}
+                <button class="dropdown-item">Logout</button>
+              </form>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</nav>
+<div class="container pb-5">
+  {% for message in messages %}
+    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show">
+      {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  {% endfor %}
+  {% block content %}{% endblock %}
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
