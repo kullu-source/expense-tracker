@@ -20,7 +20,7 @@ Open http://127.0.0.1:8000/ and log in with the demo account below, or register 
 - tracker/models.py  -> Category, Expense
 - tracker/forms.py   -> RegisterForm, ExpenseForm, CategoryForm
 - tracker/views.py   -> all pages (every view is login-protected and user-scoped)
-- templates/         -> Bootstrap 5 pages
+- templates/         -> Tailwind CSS pages (Chart.js for the dashboard charts)
 
 ## Demo Login
 - Username: kullu
