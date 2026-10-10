@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
 {% block title %}{{ title }}{% endblock %}
 {% block content %}
-<div class="row justify-content-center"><div class="col-md-6">
-  <div class="card shadow-sm"><div class="card-body p-4">
-    <h4 class="mb-3">{{ title }}</h4>
-    <form method="post">{% csrf_token %}
-      {% include 'form_fields.html' %}
-      <button class="btn btn-primary">Save</button>
-      <a class="btn btn-outline-secondary" href="{% url back %}">Cancel</a>
-    </form>
-  </div></div>
-</div></div>
+<div class="max-w-lg mx-auto bg-white rounded-lg shadow-sm p-6">
+  <h1 class="text-xl font-semibold mb-4">{{ title }}</h1>
+  <form method="post">{% csrf_token %}
+    {% include 'form_fields.html' %}
+    <div class="flex gap-2">
+      <button class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-md">Save</button>
+      <a href="{% url back %}" class="border border-slate-300 hover:bg-slate-50 text-sm px-4 py-2 rounded-md">Cancel</a>
+    </div>
+  </form>
+</div>
 {% endblock %}

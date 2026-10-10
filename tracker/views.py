@@ -46,8 +46,14 @@ def dashboard(request):
     by_category = list(
         month_qs.values('category__name').annotate(total=Sum('amount')).order_by('-total')
     )
+        # what was spent on inside each category (biggest first), for the chart tooltip
+    details = {}
+    for e in month_qs.order_by('-amount').values('category__name', 'title', 'amount'):
+        details.setdefault(e['category__name'], []).append({'title': e['title'], 'amount': e['amount']})
+
     for row in by_category:
         row['name'] = row['category__name'] or 'Uncategorized'
+        row['items'] = details.get(row['category__name'], [])
         row['percent'] = round(row['total'] / month_total * 100) if month_total else 0
 
     # last 6 months trend
@@ -63,7 +69,19 @@ def dashboard(request):
         for r in all_qs.filter(date__gte=months[0]).annotate(m=TruncMonth('date'))
         .values('m').annotate(t=Sum('amount'))
     }
-    trend = [{'label': d.strftime('%b %Y'), 'total': totals.get(d, 0)} for d in months]
+    # biggest expenses of each month, for the bar chart tooltip
+    month_items = {}
+    for e in all_qs.filter(date__gte=months[0]).order_by('-amount').values('title', 'amount', 'date'):
+        month_items.setdefault(e['date'].replace(day=1), []).append({'title': e['title'], 'amount': e['amount']})
+    trend = [
+        {
+            'label': d.strftime('%b %Y'),
+            'total': totals.get(d, 0),
+            'items': month_items.get(d, [])[:5],
+            'count': len(month_items.get(d, [])),
+        }
+        for d in months
+    ]
     biggest = max((t['total'] for t in trend), default=0)
     for t in trend:
         t['percent'] = round(t['total'] / biggest * 100) if biggest else 0

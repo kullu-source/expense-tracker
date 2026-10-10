@@ -1,51 +1,159 @@
 {% extends 'base.html' %}
 {% block title %}Dashboard{% endblock %}
 {% block content %}
-<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
-  <h3 class="m-0">Dashboard – {{ month_label }}</h3>
-  <form method="get" class="d-flex gap-2">
-    <input type="month" name="month" value="{{ month_value }}" class="form-control">
-    <button class="btn btn-outline-primary">Go</button>
+<div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+  <h1 class="text-2xl font-semibold">Dashboard &ndash; {{ month_label }}</h1>
+  <form method="get" class="flex gap-2">
+    <input type="month" name="month" value="{{ month_value }}" class="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm">
+    <button class="border border-blue-600 text-blue-600 hover:bg-blue-50 text-sm px-4 py-2 rounded-md">Go</button>
   </form>
 </div>
 
-<div class="row g-3 mb-4">
-  <div class="col-md-4"><div class="card shadow-sm"><div class="card-body">
-    <div class="text-muted">Spent this month</div><div class="fs-3 fw-bold">Rs. {{ month_total|floatformat:2 }}</div></div></div></div>
-  <div class="col-md-4"><div class="card shadow-sm"><div class="card-body">
-    <div class="text-muted">Transactions this month</div><div class="fs-3 fw-bold">{{ month_count }}</div></div></div></div>
-  <div class="col-md-4"><div class="card shadow-sm"><div class="card-body">
-    <div class="text-muted">All-time total</div><div class="fs-3 fw-bold">Rs. {{ all_time_total|floatformat:2 }}</div></div></div></div>
+<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+  <div class="bg-white rounded-lg shadow-sm p-5">
+    <p class="text-sm text-slate-500">Spent this month</p>
+    <p class="text-2xl font-bold mt-1">Rs. {{ month_total|floatformat:2 }}</p>
+  </div>
+  <div class="bg-white rounded-lg shadow-sm p-5">
+    <p class="text-sm text-slate-500">Transactions this month</p>
+    <p class="text-2xl font-bold mt-1">{{ month_count }}</p>
+  </div>
+  <div class="bg-white rounded-lg shadow-sm p-5">
+    <p class="text-sm text-slate-500">Top category</p>
+    {% if by_category %}
+      <p class="text-2xl font-bold mt-1">{{ by_category.0.name }}</p>
+      <p class="text-xs text-slate-500">Rs. {{ by_category.0.total|floatformat:2 }} ({{ by_category.0.percent }}%)</p>
+    {% else %}
+      <p class="text-2xl font-bold mt-1">&ndash;</p>
+    {% endif %}
+  </div>
+  <div class="bg-white rounded-lg shadow-sm p-5">
+    <p class="text-sm text-slate-500">All-time total</p>
+    <p class="text-2xl font-bold mt-1">Rs. {{ all_time_total|floatformat:2 }}</p>
+  </div>
 </div>
 
-<div class="row g-3">
-  <div class="col-lg-6"><div class="card shadow-sm h-100"><div class="card-body">
-    <h5>Category-wise expense</h5>
-    {% for r in by_category %}
-      <div class="mb-3">
-        <div class="d-flex justify-content-between"><span>{{ r.name }}</span><span>Rs. {{ r.total|floatformat:2 }} ({{ r.percent }}%)</span></div>
-        <progress class="bar" value="{{ r.percent }}" max="100"></progress>
-      </div>
-    {% empty %}<p class="text-muted">No expenses this month.</p>{% endfor %}
-  </div></div></div>
-
-  <div class="col-lg-6"><div class="card shadow-sm h-100"><div class="card-body">
-    <h5>Last 6 months</h5>
-    {% for t in trend %}
-      <div class="mb-3">
-        <div class="d-flex justify-content-between"><span>{{ t.label }}</span><span>Rs. {{ t.total|floatformat:2 }}</span></div>
-        <progress class="bar green" value="{{ t.percent }}" max="100"></progress>
-      </div>
-    {% endfor %}
-  </div></div></div>
+<div class="grid gap-4 lg:grid-cols-2 mb-6">
+  <div class="bg-white rounded-lg shadow-sm p-5">
+    <h2 class="font-semibold mb-4">Category-wise expense</h2>
+    {% if by_category %}
+      <div class="relative h-72"><canvas id="categoryChart"></canvas></div>
+    {% else %}
+      <p class="text-sm text-slate-500">No expenses this month.</p>
+    {% endif %}
+  </div>
+  <div class="bg-white rounded-lg shadow-sm p-5">
+    <h2 class="font-semibold mb-4">Last 6 months</h2>
+    <div class="relative h-72"><canvas id="trendChart"></canvas></div>
+  </div>
 </div>
 
-<div class="card shadow-sm mt-4"><div class="card-body">
-  <div class="d-flex justify-content-between"><h5>Recent expenses</h5><a class="btn btn-sm btn-primary" href="{% url 'expense_create' %}">+ Add expense</a></div>
-  <table class="table mb-0">
-    {% for e in recent %}
-    <tr><td>{{ e.date }}</td><td>{{ e.title }}</td><td>{{ e.category|default:"Uncategorized" }}</td><td class="text-end">Rs. {{ e.amount }}</td></tr>
-    {% empty %}<tr><td class="text-muted">Nothing yet. Add your first expense!</td></tr>{% endfor %}
-  </table>
-</div></div>
+<div class="bg-white rounded-lg shadow-sm p-5">
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="font-semibold">Recent expenses</h2>
+    <a href="{% url 'expense_create' %}" class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-2 rounded-md">+ Add expense</a>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <tbody class="divide-y divide-slate-100">
+        {% for e in recent %}
+        <tr><td class="py-2 pr-4">{{ e.date }}</td><td class="py-2 pr-4">{{ e.title }}</td><td class="py-2 pr-4">{{ e.category|default:"Uncategorized" }}</td><td class="py-2 text-right">Rs. {{ e.amount }}</td></tr>
+        {% empty %}<tr><td class="py-3 text-slate-500">Nothing yet. Add your first expense!</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{{ by_category|json_script:"category-data" }}
+{{ trend|json_script:"trend-data" }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<script>
+  function rs(value) {
+    return 'Rs. ' + Number(value).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  // Doughnut: category-wise expense
+  var categoryCanvas = document.getElementById('categoryChart');
+  if (categoryCanvas) {
+    var categories = JSON.parse(document.getElementById('category-data').textContent);
+    new Chart(categoryCanvas, {
+      type: 'doughnut',
+      plugins: [ChartDataLabels],
+      data: {
+        labels: categories.map(function (c) { return c.name + ' (' + c.percent + '%)'; }),
+        datasets: [{
+          data: categories.map(function (c) { return Number(c.total); }),
+          backgroundColor: ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#14b8a6', '#ec4899', '#64748b'],
+          borderWidth: 2,
+          borderColor: '#ffffff'
+        }]
+      },
+      options: {
+        maintainAspectRatio: false,
+        cutout: '50%',
+        plugins: {
+          legend: { position: 'right' },
+          datalabels: {
+            color: '#ffffff',
+            font: { weight: 'bold', size: 12 },
+            formatter: function (value, ctx) {
+              var p = categories[ctx.dataIndex].percent;
+              return p >= 4 ? p + '%' : '';
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: function (ctx) {
+                return ' ' + categories[ctx.dataIndex].name + ': ' + rs(ctx.raw);
+              },
+              afterBody: function (ctx) {
+                var items = categories[ctx[0].dataIndex].items;
+                var lines = items.slice(0, 6).map(function (i) { return '\u2022 ' + i.title + ' - ' + rs(i.amount); });
+                if (items.length > 6) { lines.push('+ ' + (items.length - 6) + ' more'); }
+                return lines;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Bars: last 6 months
+  var trend = JSON.parse(document.getElementById('trend-data').textContent);
+  var barColors = trend.map(function (t, i) { return i === trend.length - 1 ? '#1d4ed8' : '#93c5fd'; });
+  new Chart(document.getElementById('trendChart'), {
+    type: 'bar',
+    data: {
+      labels: trend.map(function (t) { return t.label; }),
+      datasets: [{
+        data: trend.map(function (t) { return Number(t.total); }),
+        backgroundColor: barColors,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function (ctx) { return ' ' + rs(ctx.raw); },
+            afterBody: function (ctx) {
+              var t = trend[ctx[0].dataIndex];
+              var lines = t.items.map(function (i) { return '\u2022 ' + i.title + ' - ' + rs(i.amount); });
+              if (t.count > t.items.length) { lines.push('+ ' + (t.count - t.items.length) + ' more'); }
+              return lines;
+            }
+          }
+        }
+      },
+      scales: {
+        y: { beginAtZero: true, grid: { color: '#e2e8f0' } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+</script>
 {% endblock %}

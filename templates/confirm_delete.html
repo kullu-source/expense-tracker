@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
 {% block title %}Confirm delete{% endblock %}
 {% block content %}
-<div class="row justify-content-center"><div class="col-md-6">
-  <div class="card shadow-sm border-danger"><div class="card-body p-4">
-    <h4>Delete?</h4>
-    <p>Are you sure you want to delete <strong>{{ object }}</strong>? This cannot be undone.</p>
-    <form method="post">{% csrf_token %}
-      <button class="btn btn-danger">Yes, delete</button>
-      <a class="btn btn-outline-secondary" href="{% url back %}">Cancel</a>
-    </form>
-  </div></div>
-</div></div>
+<div class="max-w-lg mx-auto bg-white rounded-lg shadow-sm p-6">
+  <h1 class="text-xl font-semibold mb-2">Delete?</h1>
+  <p class="mb-4 text-sm">Are you sure you want to delete <strong>{{ object }}</strong>? This cannot be undone.</p>
+  <form method="post">{% csrf_token %}
+    <div class="flex gap-2">
+      <button class="bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-4 py-2 rounded-md">Yes, delete</button>
+      <a href="{% url back %}" class="border border-slate-300 hover:bg-slate-50 text-sm px-4 py-2 rounded-md">Cancel</a>
+    </div>
+  </form>
+</div>
 {% endblock %}

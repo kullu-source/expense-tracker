@@ -5,14 +5,19 @@ from django.contrib.auth.models import User
 from .models import Category, Expense
 
 
-class BootstrapMixin:
+INPUT_CLASSES = (
+    'w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm '
+    'focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500'
+)
+
+
+class TailwindMixin:
     def _style(self):
         for field in self.fields.values():
-            css = 'form-select' if isinstance(field.widget, forms.Select) else 'form-control'
-            field.widget.attrs.setdefault('class', css)
+            field.widget.attrs.setdefault('class', INPUT_CLASSES)
 
 
-class RegisterForm(BootstrapMixin, UserCreationForm):
+class RegisterForm(TailwindMixin, UserCreationForm):
     class Meta(UserCreationForm.Meta):
         model = User
         fields = ('username',)
@@ -22,7 +27,7 @@ class RegisterForm(BootstrapMixin, UserCreationForm):
         self._style()
 
 
-class ExpenseForm(BootstrapMixin, forms.ModelForm):
+class ExpenseForm(TailwindMixin, forms.ModelForm):
     class Meta:
         model = Expense
         fields = ['title', 'amount', 'category', 'date', 'note']
@@ -38,7 +43,7 @@ class ExpenseForm(BootstrapMixin, forms.ModelForm):
         self._style()
 
 
-class CategoryForm(BootstrapMixin, forms.ModelForm):
+class CategoryForm(TailwindMixin, forms.ModelForm):
     class Meta:
         model = Category
         fields = ['name']
